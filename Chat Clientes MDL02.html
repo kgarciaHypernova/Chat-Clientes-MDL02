@@ -1,0 +1,473 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Chat Clientes MDL02</title>
+<style>
+/* Layout: réplica del shell de MDL02 (header verde 60px + sider 240px) con bandeja | conversación | ficha del cliente.
+   Una sola apariencia clara a propósito: el Portal Admin no tiene modo oscuro. */
+:root {
+  color-scheme: light;
+  --brand: #247E00;
+  --brand-hover: #2d9900;
+  --brand-dark: #1d6600;
+  --brand-tint: #eef7e9;
+  --bubble-agent: #d3f7c3;
+  --bg-page: #f4f6f9;
+  --bg-card: #ffffff;
+  --bg-surface: #f9fafb;
+  --border: #e5e7eb;
+  --text: #111827;
+  --text-2: #6b7280;
+  --text-3: #9ca3af;
+  --danger: #d32f2f;
+  --warn: #b45309;
+  --warn-bg: #fff7e6;
+  --ok: #247E00;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+html, body { height: 100%; }
+body { background: var(--bg-page); color: var(--text); font-family: var(--font); font-size: 14px; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+button { font: inherit; cursor: pointer; }
+button:focus-visible, textarea:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.app { display: flex; flex-direction: column; height: 100%; }
+
+/* Header (hh-header de MDL02) */
+.hh-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 60px; padding-inline: 28px; flex-shrink: 0;
+  background: linear-gradient(150deg, #0d2e00 0%, #1d6600 55%, #247E00 100%); box-shadow: 0 2px 10px rgba(0,0,0,.22); position: relative; }
+.hh-header::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(255,255,255,.04) 1px, transparent 1px); background-size: 22px 22px; pointer-events: none; }
+.hh-logo { height: 34px; position: relative; filter: drop-shadow(0 1px 3px rgba(0,0,0,.25)); }
+.hh-right { display: flex; align-items: center; gap: 10px; position: relative; color: #fff; }
+.hh-greet { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2; }
+.hh-greet small { font-size: 11px; opacity: .75; }
+.hh-greet b { font-size: 13px; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #3aaa00, #247E00); color: #fff; font-size: 13px; font-weight: 700; display: grid; place-items: center; flex-shrink: 0; }
+
+.body { display: flex; flex: 1; min-height: 0; }
+
+/* Sider */
+.sider { width: 240px; background: var(--bg-card); border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; padding-block: 8px; }
+.menu-group { color: var(--text-3); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; padding: 14px 24px 6px; }
+.menu-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 24px; color: #374151; border-right: 3px solid transparent; }
+.menu-item.sub { padding-left: 40px; }
+.menu-item.active { background: var(--brand-tint); color: var(--brand); border-right-color: var(--brand); font-weight: 600; }
+.badge { min-width: 20px; height: 20px; padding-inline: 6px; border-radius: 10px; background: var(--danger); color: #fff; font-size: 12px; font-weight: 600; display: inline-grid; place-items: center; font-variant-numeric: tabular-nums; }
+.badge[data-zero="true"] { display: none; }
+
+/* Contenido */
+.content { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 16px; gap: 12px; }
+.page-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.page-head h2 { margin: 0; font-size: 20px; font-weight: 600; }
+.page-head p { margin: 2px 0 0; color: var(--text-2); }
+.demo { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 6px 10px; border: 1px dashed var(--text-3); border-radius: 8px; background: var(--bg-surface); }
+.demo span { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); }
+
+.btn { border: 1px solid var(--border); background: var(--bg-card); color: var(--text); border-radius: 6px; padding: 5px 12px; height: 32px; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
+.btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.btn.primary:hover:not(:disabled) { background: var(--brand-hover); color: #fff; }
+.btn.danger { color: var(--danger); border-color: var(--danger); }
+.btn.danger:hover:not(:disabled) { background: #fef2f2; color: var(--danger); }
+.btn:disabled { background: #f5f5f5; color: var(--text-3); border-color: var(--border); cursor: not-allowed; }
+.btn.small { height: 26px; padding: 2px 10px; font-size: 12px; }
+
+.workspace { flex: 1; min-height: 0; display: grid; grid-template-columns: 320px minmax(0, 1fr) 260px; gap: 12px; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+
+/* Bandeja */
+.tabs { display: flex; border-bottom: 1px solid var(--border); padding-inline: 8px; }
+.tab { flex: 1; white-space: nowrap; font-size: 13px; background: none; border: 0; border-bottom: 2px solid transparent; padding: 12px 4px 10px; color: var(--text-2); display: inline-flex; justify-content: center; gap: 6px; align-items: center; }
+.tab[aria-selected="true"] { color: var(--brand); border-bottom-color: var(--brand); font-weight: 600; }
+.tab .count { font-size: 12px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.search { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.search input { width: 100%; height: 32px; border: 1px solid var(--border); border-radius: 50px; padding-inline: 14px; font: inherit; }
+.list { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
+.conv { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 12px 14px; border-bottom: 1px solid var(--border); cursor: pointer; border-left: 3px solid transparent; }
+.conv:hover { background: var(--bg-surface); }
+.conv[aria-selected="true"] { background: var(--brand-tint); border-left-color: var(--brand); }
+.conv .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.conv.unread .name::after { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); margin-left: 6px; vertical-align: middle; }
+.conv .time { color: var(--text-3); font-size: 12px; font-variant-numeric: tabular-nums; text-align: right; }
+.conv .preview { color: var(--text-2); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.conv .meta { display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
+.chip { font-size: 11px; padding: 1px 8px; border-radius: 10px; border: 1px solid; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.chip.wait { color: var(--warn); border-color: #fcd9a6; background: var(--warn-bg); }
+.chip.late { color: var(--danger); border-color: #f5c2c2; background: #fef2f2; }
+.chip.mine { color: var(--brand); border-color: #b7dfa3; background: var(--brand-tint); }
+.chip.closed { color: var(--text-2); border-color: var(--border); background: var(--bg-surface); }
+.empty-list { padding: 32px 16px; text-align: center; color: var(--text-2); }
+
+/* Conversación */
+.conv-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.conv-head h3 { margin: 0; font-size: 16px; }
+.conv-head p { margin: 2px 0 0; color: var(--text-2); font-size: 12px; }
+.conv-actions { display: flex; gap: 8px; }
+.conn { display: flex; align-items: center; gap: 8px; padding: 6px 16px; font-size: 12px; color: var(--text-2); background: var(--bg-surface); border-bottom: 1px solid var(--border); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.conn.down { background: #fef2f2; color: var(--danger); }
+.conn.down .dot { background: var(--danger); animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: .2; } }
+.messages { list-style: none; margin: 0; padding: 16px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.day { align-self: center; font-size: 12px; color: var(--text-3); }
+.sys { align-self: center; font-size: 12px; color: var(--text-2); background: var(--bg-surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px 10px; }
+.msg { max-width: 62%; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; box-shadow: 0 0 10px rgba(0,0,0,.06); }
+.msg p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg .time { font-size: 12px; font-style: italic; color: var(--text-2); text-align: right; margin-top: 4px; }
+.msg.client { align-self: flex-start; background: var(--bg-card); }
+.msg.agent { align-self: flex-end; background: var(--bubble-agent); }
+.msg.pending { opacity: .6; }
+.composer { border-top: 1px solid var(--border); padding: 10px 12px; display: flex; gap: 8px; align-items: flex-end; }
+.composer textarea { flex: 1; resize: none; min-height: 40px; max-height: 120px; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font: inherit; }
+.composer textarea:disabled { background: #f5f5f5; }
+.hint { padding: 0 12px 8px; font-size: 12px; color: var(--text-3); }
+.placeholder { flex: 1; display: grid; place-items: center; text-align: center; color: var(--text-2); padding: 24px; }
+
+/* Ficha */
+.panel { padding: 14px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.panel h4 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; margin: 0; }
+.kv dt { color: var(--text-2); }
+.kv dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.note { font-size: 12px; color: var(--text-2); background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+.metric { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed var(--border); }
+.metric b { font-size: 18px; font-variant-numeric: tabular-nums; }
+.metric b.late { color: var(--danger); }
+.metric b.ok { color: var(--ok); }
+
+/* Toast y modal */
+.toasts { position: fixed; top: calc(72px + env(safe-area-inset-top, 0px)); right: 16px; display: flex; flex-direction: column; gap: 8px; z-index: 50; }
+.toast { background: var(--bg-card); border: 1px solid var(--border); border-left: 4px solid var(--brand); border-radius: 8px; padding: 10px 14px; box-shadow: 0 6px 16px rgba(0,0,0,.12); max-width: 300px; }
+.toast b { display: block; }
+.toast span { color: var(--text-2); font-size: 13px; }
+.scrim { position: fixed; inset: 0; background: rgba(17,24,39,.45); display: grid; place-items: center; padding: 16px; z-index: 60; }
+.modal { background: var(--bg-card); border-radius: 12px; padding: 20px; width: min(400px, 100%); display: flex; flex-direction: column; gap: 12px; }
+.modal h3 { margin: 0; }
+.modal p { margin: 0; color: var(--text-2); }
+.modal label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.modal select { height: 32px; border: 1px solid var(--border); border-radius: 50px; padding-inline: 12px; font: inherit; background: var(--bg-card); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+@media (max-width: 1180px) { .workspace { grid-template-columns: 300px minmax(0, 1fr); } .ficha { display: none; } }
+@media (max-width: 900px) { .sider { display: none; } }
+@media (max-width: 720px) {
+  .hh-header { padding-inline: 16px; }
+  .hh-greet { display: none; }
+  .workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: 280px minmax(420px, 1fr); }
+  .content { overflow-y: auto; }
+  .msg { max-width: 85%; }
+}
+@media (prefers-reduced-motion: reduce) { .conn.down .dot { animation: none; } }
+</style>
+
+<div class="app">
+  <header class="hh-header">
+    <img class="hh-logo" src="data:image/webp;base64,UklGRkIEAABXRUJQVlA4WAoAAAAQAAAAlgAANwAAQUxQSMACAAABoOOAriNaOYKNuIeODbgiU1E/5IqaNptlZEzoqFjAl7wEcg6WqHOGysXcse+d92fqiJgATBeLTFfCtSTPXbkUlFWlC+Gl1AsRtdTroFFLvQzQRuplgDZS770K0Ea+chmgjXzl/EhVzd0+bOTjG9KxcInV3N1UprCqu5vJClI1dzdTEZ5Fqjn9p/sARO7rDmkWQzukWQyjOWTZDeMeaS59uZG6IctmaMmyGTqBI6eGK1VIc/EnnQDAOVH3yLMf1NGc/01BcvlP9zQSkJwaI86pQTXPI1gesKWak23DOTlKnitfH5HnAX9CZyEDiFlpBc2lT408j/j5cQLwnM87nGsx9DzkK8fJ8FzoO77GBp6H/B0HWhs84FwrG8l2qDB90Lq5W6QOpBHKxGLmO7SJjhMA3MnuM5gUqsRik8KUSazlA68p9kksMwMAJOvB2N7J7tOYpBhTzDCMKRoxyLKhSUKbrAdheye7N5gTjH3yHmOfrJYEgGrUGUuDsX00uzeYxKhyS1ClBgPgkmGu1RjDZzs3mGSoe8NRl54cIMuO8f1/157ELGpwgxtUk5bOkRrv4Lm/C/8zZhmaVHN043hWQ/GJH3e+egDTpIOatfx2WQWQ9z/88MP3HkRzjZe0ZUtsjpekNrlGS+RQYV3ZRIkPhiV8qIkMIMt0VfhKxFXxklwVvxJaiivBpZSLQACoFicV3lRsvZR6So65UgueoaF3OZ1EtQxtkWemnhGklqENzaGeEUUtM2SPNPf1hCCdzDAVUY2shp4QeWtu8PmA4gjpJwQ6hJ6CZoZWIAcwnIE7E4VWQLGKcQaUSHOKEsiWBOO26RLZE0Oqw7kE0nmh2L89vIT22JFmCKoBpHNCUb098AWGfQoWEnH0Sb3livotIm9wwVGVMNXgCQBIzGMQroK2elF74lVMJDEfMwBSG6qgTmKKIVZQOCBcAQAAcA0AnQEqlwA4AD6RRJtKJaQiIaNYDRiwEgllCHAA5ivs3EIbhDVX8A56T2EP2n9G7MAPwApf6+AFg/gL3LBGunj9FEgjd8hP0hy6zDkuDxYqopK7sS2cvKiLGo+xMrPzuBMWj9gwACBgkNxq4R3PMWcj9/AA/n2Bv+HXHfMGIn2K/dDgif/7z8JXP3PYNODf/XhNsQpps9B+B/RsxVMasCNyhs5dokQrpYy2hziqp5gTa4MpJNw+7iA19fPyWg5cUzqPgWGOLnDL//+3/P/LvYIhv/DpyMo7gBdtnO2uu1HgWmNP4/D3UF0guSIOFE9OE4okB2949cFj0Q/EoGMGlNoDOmB1T/T1/+jkeQziz9wmBkVPJM56SXBCRUcC9KeC6SgDdvV71vL5F+5s+lh5lpLnzXnZH5d65kVeHDZ2C+lrM/+IdB3tX5//+39gAudFT//7dsLH/iHQAAAA" alt="CMF">
+    <div class="hh-right">
+      <div class="hh-greet"><small>Hola,</small><b>Andrea</b></div>
+      <div class="avatar" aria-hidden="true">AR</div>
+    </div>
+  </header>
+
+  <div class="body">
+    <nav class="sider" aria-label="Menú">
+      <div class="menu-item">Tarjeta de crédito</div>
+      <div class="menu-item">Clientes</div>
+      <div class="menu-item">Remesas</div>
+      <div class="menu-item">Gestionar reclamos</div>
+      <div class="menu-group">Soporte</div>
+      <div class="menu-item sub active">Chat Clientes <span class="badge" id="menuBadge">0</span></div>
+      <div class="menu-item sub">Reporte de tiempos</div>
+    </nav>
+
+    <main class="content">
+      <div class="page-head">
+        <div>
+          <h2>Chat Clientes</h2>
+          <p>Conversaciones de soporte iniciadas desde la App CMF</p>
+        </div>
+        <div class="demo" role="group" aria-label="Controles de la maqueta">
+          <span>Demo</span>
+          <button class="btn small" id="simIncoming" type="button">Simular mensaje entrante</button>
+          <button class="btn small" id="simDrop" type="button">Simular desconexión</button>
+          <button class="btn small" id="soundToggle" type="button" aria-pressed="false">Sonido: apagado</button>
+        </div>
+      </div>
+
+      <div class="workspace">
+        <section class="card" aria-label="Bandeja">
+          <div class="tabs" role="tablist">
+            <button class="tab" role="tab" data-tab="queue" aria-selected="true" type="button">Sin asignar <span class="count" id="countQueue"></span></button>
+            <button class="tab" role="tab" data-tab="mine" aria-selected="false" type="button">Mis chats <span class="count" id="countMine"></span></button>
+            <button class="tab" role="tab" data-tab="closed" aria-selected="false" type="button">Cerrados <span class="count" id="countClosed"></span></button>
+          </div>
+          <div class="search"><input id="search" type="search" placeholder="Buscar nombre o cédula" aria-label="Buscar conversación"></div>
+          <ul class="list" id="list"></ul>
+        </section>
+
+        <section class="card" aria-label="Conversación" id="convPane"></section>
+
+        <aside class="card ficha" aria-label="Datos del cliente" id="ficha"></aside>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="scrim" id="closeModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="closeTitle">
+    <h3 id="closeTitle">Cerrar caso</h3>
+    <p>El cliente verá que la conversación terminó. Si vuelve a escribir, se abre un caso nuevo.</p>
+    <label for="closeReason">Motivo de cierre
+      <select id="closeReason">
+        <option>Consulta resuelta</option>
+        <option>Se derivó a otra área</option>
+        <option>El cliente no respondió</option>
+      </select>
+    </label>
+    <div class="modal-actions">
+      <button class="btn" type="button" id="closeCancel">Cancelar</button>
+      <button class="btn primary" type="button" id="closeConfirm">Cerrar caso</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // Datos de ejemplo: clientes ficticios, cédulas ya enmascaradas como las entregaría el servicio.
+  const now = Date.now();
+  const min = 60000;
+  const convs = [
+    { id: 'c1', name: 'María Fernanda Ríos', ced: '8-***-1427', status: 'queue', unread: 2, since: now - 4 * min,
+      products: ['Tarjeta de crédito •••• 4821', 'C+ 12.540 pts'], app: 'Android · 3.9.2',
+      msgs: [
+        { from: 'client', text: 'Hola, hice un pago a mi tarjeta ayer y todavía no se refleja.', t: now - 4 * min },
+        { from: 'client', text: 'Fue por Yappy, a las 6:40 p. m.', t: now - 3.5 * min }
+      ] },
+    { id: 'c2', name: 'José Antonio Batista', ced: '4-***-0893', status: 'queue', unread: 1, since: now - 1 * min,
+      products: ['Prepago •••• 1180'], app: 'iOS · 3.9.2',
+      msgs: [ { from: 'client', text: 'No me llega el código para cambiar el PIN.', t: now - 1 * min } ] },
+    { id: 'c3', name: 'Yariela Castillo', ced: '8-***-3310', status: 'mine', unread: 0, since: now - 12 * min, firstReply: now - 10.5 * min,
+      products: ['Tarjeta de crédito •••• 0057', 'Extrafinanciamiento activo'], app: 'Android · 3.9.1',
+      msgs: [
+        { from: 'client', text: '¿Cuál es la fecha de corte de mi tarjeta?', t: now - 12 * min },
+        { from: 'agent', text: 'Hola Yariela, soy Andrea de Soporte CMF. Tu fecha de corte es el 15 de cada mes y el pago vence el 5 del mes siguiente.', t: now - 10.5 * min },
+        { from: 'client', text: 'Perfecto, ¿y puedo cambiarla?', t: now - 9 * min }
+      ] },
+    { id: 'c4', name: 'Luis Carlos Pinzón', ced: 'E-***-7765', status: 'closed', unread: 0, since: now - 95 * min, firstReply: now - 93 * min, closedAt: now - 88 * min,
+      products: ['Prepago •••• 6402'], app: 'iOS · 3.8.7',
+      msgs: [
+        { from: 'client', text: '¿Dónde veo mis movimientos del prepago?', t: now - 95 * min },
+        { from: 'agent', text: 'En Inicio, toca tu tarjeta prepago y luego "Movimientos".', t: now - 93 * min },
+        { from: 'client', text: 'Listo, gracias.', t: now - 90 * min }
+      ], reason: 'Consulta resuelta' }
+  ];
+  const incomingPool = [
+    { name: 'Ana Belén Quintero', ced: '2-***-5521', products: ['Tarjeta de crédito •••• 7735'], app: 'Android · 3.9.2', text: 'Buenas, me cobraron dos veces la cuota de este mes.' },
+    { name: 'Ricardo Samaniego', ced: '8-***-0418', products: ['Prepago •••• 3091'], app: 'iOS · 3.9.2', text: 'Quiero saber si ya me aprobaron el aumento de límite.' }
+  ];
+
+  let tab = 'mine';
+  let selected = 'c3';
+  let connected = true;
+  let sound = false;
+  let audioCtx = null;
+  let q = '';
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const hhmm = (t) => new Date(t).toLocaleTimeString('es-PA', { hour: '2-digit', minute: '2-digit' });
+  const mmss = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+  const byId = (id) => convs.find((c) => c.id === id);
+
+  function renderCounts() {
+    const n = (s) => convs.filter((c) => c.status === s).length;
+    const qUnread = convs.filter((c) => c.status === 'queue').reduce((a, c) => a + c.unread, 0);
+    $('countQueue').innerHTML = qUnread ? '<span class="badge">' + qUnread + '</span>' : n('queue');
+    $('countMine').textContent = n('mine');
+    $('countClosed').textContent = n('closed');
+    const unread = convs.filter((c) => c.status !== 'closed').reduce((a, c) => a + c.unread, 0);
+    $('menuBadge').textContent = unread;
+    $('menuBadge').dataset.zero = String(unread === 0);
+    document.title = (unread ? '(' + unread + ') ' : '') + 'Chat Clientes MDL02';
+  }
+
+  function renderList() {
+    const items = convs
+      .filter((c) => c.status === tab)
+      .filter((c) => !q || c.name.toLowerCase().includes(q) || c.ced.slice(-4).includes(q))
+      .sort((a, b) => b.msgs.at(-1).t - a.msgs.at(-1).t);
+    if (!items.length) { $('list').innerHTML = '<li class="empty-list">No hay conversaciones aquí.</li>'; return; }
+    $('list').innerHTML = items.map((c) => {
+      const last = c.msgs.at(-1);
+      const waiting = c.status === 'queue' ? Date.now() - c.since : 0;
+      let chip = '';
+      if (c.status === 'queue') chip = '<span class="chip ' + (waiting > 3 * min ? 'late' : 'wait') + '">Espera ' + mmss(waiting) + '</span>';
+      if (c.status === 'mine') chip = '<span class="chip mine">Atendiendo</span>';
+      if (c.status === 'closed') chip = '<span class="chip closed">Cerrado</span>';
+      return '<li class="conv' + (c.unread ? ' unread' : '') + '" role="option" tabindex="0" data-id="' + c.id + '" aria-selected="' + (c.id === selected) + '">' +
+        '<span class="name">' + esc(c.name) + '</span><span class="time">' + hhmm(last.t) + '</span>' +
+        '<span class="preview">' + (last.from === 'agent' ? 'Tú: ' : '') + esc(last.text) + '</span>' +
+        '<span class="meta">' + (c.unread ? '<span class="badge">' + c.unread + '</span>' : '') + '</span>' +
+        '<span class="preview" style="font-size:12px">Cédula ' + c.ced + '</span><span class="meta">' + chip + '</span></li>';
+    }).join('');
+  }
+
+  function renderConv() {
+    const c = byId(selected);
+    if (!c) {
+      $('convPane').innerHTML = '<div class="placeholder"><div><b>Elige una conversación</b><br>Las nuevas aparecen en "Sin asignar" con un globo rojo.</div></div>';
+      $('ficha').innerHTML = '';
+      return;
+    }
+    const isMine = c.status === 'mine';
+    const isClosed = c.status === 'closed';
+    let actions = '';
+    if (c.status === 'queue') actions = '<button class="btn primary" id="take" type="button">Tomar caso</button>';
+    if (isMine) actions = '<button class="btn danger" id="close" type="button">Cerrar caso</button>';
+    const msgs = c.msgs.map((m) => '<li class="msg ' + m.from + (m.pending ? ' pending' : '') + '"><p>' + esc(m.text) + '</p><div class="time">' +
+      (m.from === 'agent' ? 'Andrea R.' : esc(c.name.split(' ')[0])) + ' - ' + (m.pending ? 'enviando…' : hhmm(m.t)) + '</div></li>').join('');
+    const sys = [];
+    if (isClosed) sys.push('<li class="sys">Caso cerrado · ' + esc(c.reason || 'Consulta resuelta') + '</li>');
+    const canWrite = isMine && connected;
+    $('convPane').innerHTML =
+      '<div class="conv-head"><div><h3>' + esc(c.name) + '</h3><p>Cédula ' + c.ced + ' · Inició ' + hhmm(c.since) + ' desde la App CMF</p></div><div class="conv-actions">' + actions + '</div></div>' +
+      '<div class="conn' + (connected ? '' : ' down') + '"><span class="dot"></span>' + (connected ? 'Conectado · los mensajes llegan en vivo' : 'Sin conexión · reconectando… Al volver se cargan los mensajes que falten.') + '</div>' +
+      '<ul class="messages" id="messages"><li class="day">Hoy</li>' + msgs + sys.join('') + '</ul>' +
+      (isClosed ? '<div class="hint" style="padding:12px">Caso cerrado. Solo lectura.</div>' :
+      '<div class="composer"><textarea id="reply" rows="1" placeholder="' + (isMine ? 'Escribe tu respuesta' : 'Toma el caso para responder') + '" aria-label="Respuesta" ' + (canWrite ? '' : 'disabled') + '></textarea>' +
+      '<button class="btn primary" id="send" type="button" disabled>Enviar</button></div>' +
+      '<div class="hint">' + (isMine ? 'Enter envía · Shift+Enter nueva línea' : 'Nadie ha respondido todavía.') + '</div>');
+    const box = $('messages'); box.scrollTop = box.scrollHeight;
+    renderFicha(c);
+    wireConv(c);
+  }
+
+  function renderFicha(c) {
+    const frt = c.firstReply ? c.firstReply - c.since : Date.now() - c.since;
+    const aht = (c.closedAt || Date.now()) - c.since;
+    const frtLate = frt > 3 * min;
+    $('ficha').innerHTML =
+      '<div class="panel">' +
+      '<div><h4>Cliente</h4><dl class="kv"><dt>Nombre</dt><dd>' + esc(c.name) + '</dd><dt>Cédula</dt><dd>' + c.ced + '</dd><dt>App</dt><dd>' + c.app + '</dd></dl></div>' +
+      '<div><h4>Productos</h4><dl class="kv">' + c.products.map((p, i) => '<dt>' + (i + 1) + '</dt><dd>' + esc(p) + '</dd>').join('') + '</dl></div>' +
+      '<div class="note">Solo se muestran los datos mínimos para dar soporte. La cédula llega enmascarada desde el servicio.</div>' +
+      '<div><h4>Tiempos del caso</h4>' +
+      '<div class="metric"><span>' + (c.firstReply ? 'Primera respuesta' : 'Esperando respuesta') + '</span><b class="' + (frtLate ? 'late' : 'ok') + '" id="frt">' + mmss(frt) + '</b></div>' +
+      '<div class="metric"><span>' + (c.closedAt ? 'Duración total' : 'Duración hasta ahora') + '</span><b id="aht">' + mmss(aht) + '</b></div>' +
+      '<p style="font-size:12px;color:var(--text-2);margin:8px 0 0">Meta de primera respuesta: 3:00</p></div></div>';
+  }
+
+  function wireConv(c) {
+    const take = $('take');
+    if (take) take.onclick = () => { c.status = 'mine'; c.unread = 0; tab = 'mine'; syncTabs(); renderAll(); $('reply') && $('reply').focus(); };
+    const close = $('close');
+    if (close) close.onclick = () => { $('closeModal').hidden = false; $('closeReason').focus(); };
+    const reply = $('reply'), send = $('send');
+    if (!reply) return;
+    const update = () => { send.disabled = !(reply.value.trim() && connected && c.status === 'mine'); };
+    reply.oninput = update;
+    reply.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!send.disabled) send.click(); } };
+    send.onclick = () => {
+      const msg = { from: 'agent', text: reply.value.trim(), t: Date.now(), pending: true };
+      if (!c.firstReply) c.firstReply = msg.t;
+      c.msgs.push(msg); reply.value = '';
+      renderAll();
+      setTimeout(() => { msg.pending = false; renderAll(); }, 600);
+    };
+  }
+
+  function renderAll() {
+    const draft = $('reply') ? $('reply').value : '';
+    renderCounts(); renderList(); renderConv();
+    if ($('reply') && draft) { $('reply').value = draft; $('reply').dispatchEvent(new Event('input')); }
+  }
+
+  function syncTabs() { document.querySelectorAll('.tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tab))); }
+
+  function toast(title, text) {
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.innerHTML = '<b>' + esc(title) + '</b><span>' + esc(text) + '</span>';
+    $('toasts').appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+
+  function beep() {
+    if (!sound) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.frequency.value = 880; g.gain.setValueAtTime(0.08, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+      o.connect(g).connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + 0.25);
+    } catch (e) { /* sin audio disponible */ }
+  }
+
+  // Eventos
+  $('list').addEventListener('click', (e) => {
+    const li = e.target.closest('.conv'); if (!li) return;
+    selected = li.dataset.id;
+    const c = byId(selected); if (c.status === 'mine') c.unread = 0;
+    renderAll();
+  });
+  $('list').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.classList.contains('conv')) e.target.click(); });
+  document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => { tab = b.dataset.tab; syncTabs(); renderList(); }));
+  $('search').addEventListener('input', (e) => { q = e.target.value.trim().toLowerCase(); renderList(); });
+
+  let poolIdx = 0;
+  $('simIncoming').addEventListener('click', () => {
+    // Alterna: un cliente nuevo en la cola, o una respuesta del cliente en "Mis chats".
+    const mine = byId('c3');
+    if (poolIdx % 2 === 1 && mine.status === 'mine') {
+      mine.msgs.push({ from: 'client', text: 'Gracias. ¿Me pueden confirmar por aquí cuando quede el cambio?', t: Date.now() });
+      if (selected !== 'c3') mine.unread += 1;
+      toast('Nuevo mensaje', mine.name + ' respondió');
+    } else {
+      const p = incomingPool[Math.floor(poolIdx / 2) % incomingPool.length];
+      const id = 'n' + poolIdx;
+      convs.push({ id, name: p.name, ced: p.ced, status: 'queue', unread: 1, since: Date.now(), products: p.products, app: p.app, msgs: [{ from: 'client', text: p.text, t: Date.now() }] });
+      toast('Chat nuevo en la cola', p.name + ': ' + p.text);
+    }
+    poolIdx += 1;
+    beep();
+    renderAll();
+  });
+
+  $('simDrop').addEventListener('click', () => {
+    if (!connected) return;
+    connected = false; $('simDrop').disabled = true; renderAll();
+    setTimeout(() => { connected = true; $('simDrop').disabled = false; toast('Conexión recuperada', 'Se cargaron los mensajes pendientes'); renderAll(); }, 4000);
+  });
+
+  $('soundToggle').addEventListener('click', (e) => {
+    sound = !sound;
+    e.currentTarget.setAttribute('aria-pressed', String(sound));
+    e.currentTarget.textContent = 'Sonido: ' + (sound ? 'encendido' : 'apagado');
+    if (sound) beep();
+  });
+
+  $('closeCancel').addEventListener('click', () => { $('closeModal').hidden = true; });
+  $('closeConfirm').addEventListener('click', () => {
+    const c = byId(selected);
+    c.status = 'closed'; c.closedAt = Date.now(); c.reason = $('closeReason').value;
+    $('closeModal').hidden = true; tab = 'closed'; syncTabs(); renderAll();
+    toast('Caso cerrado', c.name + ' · ' + c.reason);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('closeModal').hidden = true; });
+
+  // Reloj de espera y tiempos, cada segundo
+  setInterval(() => {
+    renderList();
+    const c = byId(selected);
+    if (c && c.status !== 'closed') {
+      const frt = $('frt'), aht = $('aht');
+      if (frt && !c.firstReply) { frt.textContent = mmss(Date.now() - c.since); frt.className = Date.now() - c.since > 3 * min ? 'late' : 'ok'; }
+      if (aht) aht.textContent = mmss(Date.now() - c.since);
+    }
+  }, 1000);
+
+  syncTabs();
+  renderAll();
+})();
+</script>
+
+</body></html>
